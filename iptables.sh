@@ -12,8 +12,8 @@ $SIP -F
 $SIP -X
 
 #loopback connectie
-$SIP -A INPUT -i lo -s 127.0.0.1 -j ACCEPT
-$SIP -A OUTPUT -o lo -s 127.0.0.1 -j ACCEPT
+$SIP --table filter -A INPUT -source 127.0.0.1 -i lo -j ACCEPT
+$SIP --table filter -A OUTPUT -destination 127.0.0.1 -o lo -j ACCEPT
 
 #allow security patch
 $SIP -A OUTPUT -d security.debian.org -p tcp --dport 80 -j ACCEPT
