@@ -1,0 +1,31 @@
+#!/bin/sh
+IPtabl="/bin/iptables"
+
+#loopback connectie
+$IPtabl -A INPUT -i lo -j ACCEPT
+$IPtabl -A OUTPUT -o lo -j ACCEPT
+
+#allow security patch
+$IPtabl -A OUTPUT -d security.debian.org --dport 80 -j ACCEPT
+$IPtabl -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+#prevent ping flood
+$IPtabl -t filter -A INPUT -p icmp --icmp-type echo-request -m limit --limit 5/minute -j ACCEPT
+$IPtabl -t filter -A INPUT -p icmp -j DROP
+$IPtabl -t filter -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+
+#Apache(http+https)
+$IPtabl -A INPUT -p tcp -m multiport --dport 80,443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+$IPtabl -A OUTPUT -p tcp -m multiport --dport 80,443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+#Proftpd
+$IPtabl -A INPUT -p tcp -m multiport --dport 20,21 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+$IPtabl -A OUTPUT -p tcp -m multiport --dport 20,21 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+#bind9
+$IPtabl -A INPUT -p udp --dport 53 -j DROP
+$IPtabl -A OUTPUT -p udp --dport 53 -j DROP
+
+$IPtabl -P INPUT DROP
+$IPtabl -P FORWARD DROP
+$IPtabl -P OUTPUT DROP
