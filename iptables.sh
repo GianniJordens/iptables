@@ -1,12 +1,22 @@
 #!/bin/sh
+
 SIP="sudo iptables"
 
+#flush iptables
+$SIP -P INPUT ACCEPT
+$SIP -P FORWARD ACCEPT
+$SIP -P OUTPUT ACCEPT
+$SIP -t nat -F
+$SIP -t mangle -F
+$SIP -F
+$SIP -X
+
 #loopback connectie
-$SIP -A INPUT -i lo -j ACCEPT
-$SIP -A OUTPUT -o lo -j ACCEPT
+$SIP -A INPUT -i lo -s 127.0.0.1 -j ACCEPT
+$SIP -A OUTPUT -o lo -s 127.0.0.1 -j ACCEPT
 
 #allow security patch
-$SIP -A OUTPUT -d security.debian.org --dport 80 -j ACCEPT
+$SIP -A OUTPUT -d security.debian.org -p tcp --dport 80 -j ACCEPT
 $SIP -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 #prevent ping flood
